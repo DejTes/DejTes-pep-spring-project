@@ -28,7 +28,7 @@ public class MessageService {
             throw new IllegalArgumentException("Invalid message text.");
         }
         if (accountService.getAccountById(message.getPostedBy()) == null) {
-            throw new IllegalArgumentException("Invalid Account Id"); 
+            throw new IllegalArgumentException("Invalid Account"); 
         }
         return messageRepository.save(message);
     }
@@ -43,8 +43,12 @@ public class MessageService {
         return messageRepository.findById(messageId);
     }
 
-    public void deleteMessageById(Integer messageId) {
-        messageRepository.deleteById(messageId);
+    public int deleteMessageById(Integer messageId) {
+        if (messageRepository.existsById(messageId)) {
+            messageRepository.deleteById(messageId);
+            return 1;
+        }
+        return 0;
     }
 
     public Message updateMessage(Integer messageId, String newMessageText) {

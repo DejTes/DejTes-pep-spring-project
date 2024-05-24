@@ -100,9 +100,9 @@ public ResponseEntity<Account> login(@RequestBody Account account) {
     }
 
     @DeleteMapping("/messages/{messageId}")
-    public ResponseEntity<Void> deleteMessageById(@PathVariable Integer messageId) {
-        messageService.deleteMessageById(messageId);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Integer> deleteMessageById(@PathVariable Integer messageId) {
+        int rowsDeleted = messageService.deleteMessageById(messageId);
+        return ResponseEntity.ok(rowsDeleted);
     }
 
     @PatchMapping("/messages/{messageId}")
