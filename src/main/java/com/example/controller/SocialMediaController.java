@@ -30,7 +30,7 @@ import java.util.List;
 
 
 @RestController
-@RequestMapping("/account")
+//@RequestMapping("/account")
 public class SocialMediaController {
 
     private final AccountService accountService;
@@ -48,8 +48,8 @@ public class SocialMediaController {
 // Account Endpoints
     @PostMapping("/register")
     public ResponseEntity<Account> register(@RequestBody Account newAccount) {
+        Account registeredAccount = accountService.registerAccount(newAccount);
         try {
-            Account registeredAccount = accountService.registerAccount(newAccount);
             return ResponseEntity.ok(registeredAccount);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
