@@ -41,10 +41,11 @@ public class MessageService {
         return messageRepository.findById(messageId);
     }
 
-        // Delete message by id
+    //     // Delete message by id
     public void deleteMessageById(Integer messageId){
         messageRepository.deleteById(messageId);
     }
+
 
     public Message updateMessage(Integer messageId, String newMessageText) {
         if (newMessageText == null || newMessageText.isEmpty() || newMessageText.length() > 255) {
@@ -54,6 +55,7 @@ public class MessageService {
         message.setMessageText(newMessageText);
         return messageRepository.save(message);
     }
+
 
 
     // Retrieves all messages posted by a specific user.
