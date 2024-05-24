@@ -13,7 +13,7 @@ public class Account {
     /**
      * An id for this Account. You should use this as the Entity's ID.
      */
-    @Column(name="accountId")
+    @Column(name="account_id")
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer accountId;

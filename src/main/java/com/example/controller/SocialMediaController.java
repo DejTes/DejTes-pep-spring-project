@@ -13,11 +13,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.http.HttpStatus;
 
 
+
 import com.example.entity.Account;
 import com.example.entity.Message;
 import com.example.service.AccountService;
 import com.example.service.MessageService;
 import java.util.List;
+import java.util.Optional;
 
 
 
@@ -30,11 +32,13 @@ import java.util.List;
 
 
 @RestController
-//@RequestMapping("/account")
+//@RequestMapping
 public class SocialMediaController {
 
-   
+   @Autowired
     private  AccountService accountService;
+
+    @Autowired
     private  MessageService messageService;
 
 
@@ -45,92 +49,73 @@ public class SocialMediaController {
     }
 
   
-
 // Account Endpoints
-    @PostMapping("/register")
-    public ResponseEntity<Account> register(@RequestBody Account newAccount) {
-        Account registeredAccount = accountService.registerAccount(newAccount);
-        try {
-            return ResponseEntity.ok(registeredAccount);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
-        }
+@PostMapping("/register")
+public ResponseEntity<Account> register(@RequestBody Account account) {
+    Account existingAccount = accountService.getAccountByUsername(account.getUsername());
+    if (existingAccount != null) {
+        return new ResponseEntity<>(HttpStatus.CONFLICT); 
     }
+    if (account.getUsername() == null || account.getUsername().isEmpty() || account.getPassword() == null || account.getPassword().length() < 4) {
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+    Account savedAccount = accountService.saveAccount(account);
+    return new ResponseEntity<>(savedAccount, HttpStatus.OK); 
+}
+
+@PostMapping("/login")
+public ResponseEntity<Account> login(@RequestBody Account account) {
+    try {
+        Account loggedInAccount = accountService.login(account.getUsername(), account.getPassword());
+        return ResponseEntity.ok(loggedInAccount);
+    } catch (IllegalArgumentException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null); 
+    }
+}
     
 
-    @PostMapping("/login")
-    public ResponseEntity<Account> login(@RequestBody Account account) {
-        try {
-            Account logedInAccount = accountService.login(account.getUsername(), account.getPassword());
-            return ResponseEntity.ok(logedInAccount);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
-        }
-    }
-    
 
-    //Message endpoints
+
+    // Message Endpoints
     @PostMapping("/messages")
-    
     public ResponseEntity<Message> createMessage(@RequestBody Message newMessage) {
         try {
             Message createdMessage = messageService.createMessage(newMessage);
             return ResponseEntity.ok(createdMessage);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(400).body(null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
-
     }
 
     @GetMapping("/messages")
-    public ResponseEntity<List<Message>> getAllMessages(){
+    public ResponseEntity<List<Message>> getAllMessages() {
         List<Message> messages = messageService.getAllMessages();
         return ResponseEntity.ok(messages);
     }
 
-
-
-    @GetMapping("/messages/{messageId}") 
+    @GetMapping("/messages/{messageId}")
     public ResponseEntity<Message> getMessageById(@PathVariable Integer messageId) {
-        return messageService.getMessageId(messageId).map(ResponseEntity::ok).orElse(ResponseEntity.status(200).body(null));
+        Optional<Message> message = messageService.getMessageById(messageId);
+        return message.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
     }
-
-
-    // @DeleteMapping("/messages/{messageId}")
-    // public ResponseEntity<Void> deleteMessageById(@PathVariable Integer messageId) {
-    //     messageService.deleteMessageById(messageId);
-    //     return ResponseEntity.ok().build();
-    // }
 
     @DeleteMapping("/messages/{messageId}")
     public ResponseEntity<Void> deleteMessageById(@PathVariable Integer messageId) {
-        System.out.println("Received request to delete message with id: " + messageId);
-        try {
-            messageService.deleteMessageById(messageId);
-            System.out.println("Successfully deleted message with id: " + messageId);
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            System.out.println("Unexpected error while deleting message with id: " + messageId + ". Error: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        messageService.deleteMessageById(messageId);
+        return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/messages/{messageId}")
-public ResponseEntity<Message> updateMessage(@PathVariable Integer messageId, @RequestBody String newMessageText) {
-    System.out.println("Received request to update message with id: " + messageId);
-    try {
-        Message updatedMessage = messageService.updateMessage(messageId, newMessageText);
-        System.out.println("Successfully updated message with id: " + updatedMessage.getMessageId());
-        return ResponseEntity.ok(updatedMessage);
-    } catch (IllegalArgumentException e) {
-        System.out.println("Error updating message: " + e.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+    public ResponseEntity<Message> updateMessage(@PathVariable Integer messageId, @RequestBody String newMessageText) {
+        try {
+            Message updatedMessage = messageService.updateMessage(messageId, newMessageText);
+            return ResponseEntity.ok(updatedMessage);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
     }
-}
 
-    @GetMapping("/accounts/{accountId}/messages")
+    @GetMapping("/account/{accountId}/messages")
     public ResponseEntity<List<Message>> getMessagesByUser(@PathVariable Integer accountId) {
         List<Message> messages = messageService.getMessagesByUser(accountId);
         return ResponseEntity.ok(messages);
