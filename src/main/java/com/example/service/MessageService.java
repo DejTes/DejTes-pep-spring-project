@@ -52,13 +52,16 @@ public class MessageService {
     }
 
     public Message updateMessage(Integer messageId, String newMessageText) {
-        if (newMessageText == null || newMessageText.isEmpty() || newMessageText.length() > 255) {
+        if (newMessageText == null || newMessageText.trim().isEmpty() || newMessageText.length() > 255) {
             throw new IllegalArgumentException("Invalid message text.");
         }
         Message message = messageRepository.findById(messageId).orElseThrow(() -> new IllegalArgumentException("Message not found."));
         message.setMessageText(newMessageText);
         return messageRepository.save(message);
     }
+    
+
+
 
     public List<Message> getMessagesByUser(Integer accountId) {
         return messageRepository.findByPostedBy(accountId);

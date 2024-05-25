@@ -19,6 +19,7 @@ import com.example.entity.Message;
 import com.example.service.AccountService;
 import com.example.service.MessageService;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 
@@ -96,36 +97,43 @@ public ResponseEntity<Account> login(@RequestBody Account account) {
     @GetMapping("/messages/{messageId}")
     public ResponseEntity<Message> getMessageById(@PathVariable Integer messageId) {
         Optional<Message> message = messageService.getMessageById(messageId);
-        return message.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
+        return message.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.status(HttpStatus.OK).body(null));
     }
 
-    // @DeleteMapping("/messages/{messageId}")
-    // public ResponseEntity<Integer> deleteMessageById(@PathVariable Integer messageId) {
-    //     int rowsDeleted = messageService.deleteMessageById(messageId);
-    //     return ResponseEntity.ok(rowsDeleted);
-    // }
+@DeleteMapping("/messages/{messageId}")
+public ResponseEntity<?> deleteMessageById(@PathVariable Integer messageId) {
+    int rowsDeleted = messageService.deleteMessageById(messageId);
+    if (rowsDeleted == 1) {
+        return ResponseEntity.ok(rowsDeleted); 
+    } else {
+        return ResponseEntity.ok().build(); 
+    }
+}
 
-    @DeleteMapping("/messages/{messageId}")
-    public ResponseEntity<Void> deleteMessageById(@PathVariable Integer messageId) {
-        int rowsDeleted = messageService.deleteMessageById(messageId);
-        if (rowsDeleted == 1) {
-            return ResponseEntity.ok().build(); 
+
+@PatchMapping("/messages/{messageId}")
+public ResponseEntity<Integer> updateMessage(@PathVariable Integer messageId, @RequestBody Map<String, String> payload) {
+    // Extract newMessageText from the payload
+    String newMessageText = payload.get("messageText");
+    if (newMessageText == null || newMessageText.trim().isEmpty() || newMessageText.length() > 255) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(0);
+    }
+
+    try {
+   
+        Message updatedMessage = messageService.updateMessage(messageId, newMessageText);
+        if (updatedMessage != null) {
+            return ResponseEntity.ok(1);
         } else {
-            return ResponseEntity.ok().build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(0);
         }
+    } catch (IllegalArgumentException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(0);
     }
-    
+}
 
 
-    @PatchMapping("/messages/{messageId}")
-    public ResponseEntity<Message> updateMessage(@PathVariable Integer messageId, @RequestBody String newMessageText) {
-        try {
-            Message updatedMessage = messageService.updateMessage(messageId, newMessageText);
-            return ResponseEntity.ok(updatedMessage);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
-        }
-    }
+
 
     @GetMapping("/accounts/{accountId}/messages")
     public ResponseEntity<List<Message>> getMessagesByUser(@PathVariable Integer accountId) {
