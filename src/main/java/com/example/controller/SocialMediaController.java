@@ -32,13 +32,13 @@ import java.util.Optional;
 
 
 @RestController
-//@RequestMapping
+//@RequestMapping("/account")
 public class SocialMediaController {
 
    @Autowired
     private  AccountService accountService;
 
-    @Autowired
+   @Autowired
     private  MessageService messageService;
 
 
@@ -99,11 +99,23 @@ public ResponseEntity<Account> login(@RequestBody Account account) {
         return message.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
     }
 
+    // @DeleteMapping("/messages/{messageId}")
+    // public ResponseEntity<Integer> deleteMessageById(@PathVariable Integer messageId) {
+    //     int rowsDeleted = messageService.deleteMessageById(messageId);
+    //     return ResponseEntity.ok(rowsDeleted);
+    // }
+
     @DeleteMapping("/messages/{messageId}")
-    public ResponseEntity<Integer> deleteMessageById(@PathVariable Integer messageId) {
+    public ResponseEntity<Void> deleteMessageById(@PathVariable Integer messageId) {
         int rowsDeleted = messageService.deleteMessageById(messageId);
-        return ResponseEntity.ok(rowsDeleted);
+        if (rowsDeleted == 1) {
+            return ResponseEntity.ok().build(); 
+        } else {
+            return ResponseEntity.ok().build();
+        }
     }
+    
+
 
     @PatchMapping("/messages/{messageId}")
     public ResponseEntity<Message> updateMessage(@PathVariable Integer messageId, @RequestBody String newMessageText) {
@@ -115,7 +127,7 @@ public ResponseEntity<Account> login(@RequestBody Account account) {
         }
     }
 
-    @GetMapping("/account/{accountId}/messages")
+    @GetMapping("/accounts/{accountId}/messages")
     public ResponseEntity<List<Message>> getMessagesByUser(@PathVariable Integer accountId) {
         List<Message> messages = messageService.getMessagesByUser(accountId);
         return ResponseEntity.ok(messages);
