@@ -7,12 +7,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.http.HttpStatus;
-
-
 
 import com.example.entity.Account;
 import com.example.entity.Message;
@@ -21,7 +18,6 @@ import com.example.service.MessageService;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
 
 
 /**
@@ -33,15 +29,9 @@ import java.util.Optional;
 
 
 @RestController
-//@RequestMapping("/account")
 public class SocialMediaController {
-
-   @Autowired
     private  AccountService accountService;
-
-   @Autowired
     private  MessageService messageService;
-
 
     @Autowired
     public SocialMediaController(AccountService accountService, MessageService messageService) {
@@ -51,6 +41,8 @@ public class SocialMediaController {
 
   
 // Account Endpoints
+
+// Endpoint for usesr registration
 @PostMapping("/register")
 public ResponseEntity<Account> register(@RequestBody Account account) {
     Account existingAccount = accountService.getAccountByUsername(account.getUsername());
@@ -64,6 +56,8 @@ public ResponseEntity<Account> register(@RequestBody Account account) {
     return new ResponseEntity<>(savedAccount, HttpStatus.OK); 
 }
 
+
+//Endpoint for user login
 @PostMapping("/login")
 public ResponseEntity<Account> login(@RequestBody Account account) {
     try {
@@ -73,11 +67,8 @@ public ResponseEntity<Account> login(@RequestBody Account account) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null); 
     }
 }
-    
 
-
-
-    // Message Endpoints
+    // Endpoint to create a new message
     @PostMapping("/messages")
     public ResponseEntity<Message> createMessage(@RequestBody Message newMessage) {
         try {
@@ -88,18 +79,21 @@ public ResponseEntity<Account> login(@RequestBody Account account) {
         }
     }
 
+    // Retrieve  all messages
     @GetMapping("/messages")
     public ResponseEntity<List<Message>> getAllMessages() {
         List<Message> messages = messageService.getAllMessages();
         return ResponseEntity.ok(messages);
     }
 
+    // Retrieve message by its ID
     @GetMapping("/messages/{messageId}")
     public ResponseEntity<Message> getMessageById(@PathVariable Integer messageId) {
         Optional<Message> message = messageService.getMessageById(messageId);
         return message.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.status(HttpStatus.OK).body(null));
     }
 
+    //Endpoint to Delete a message by its ID
 @DeleteMapping("/messages/{messageId}")
 public ResponseEntity<?> deleteMessageById(@PathVariable Integer messageId) {
     int rowsDeleted = messageService.deleteMessageById(messageId);
@@ -110,7 +104,7 @@ public ResponseEntity<?> deleteMessageById(@PathVariable Integer messageId) {
     }
 }
 
-
+// Endpoints to Update a Message by its
 @PatchMapping("/messages/{messageId}")
 public ResponseEntity<Integer> updateMessage(@PathVariable Integer messageId, @RequestBody Map<String, String> payload) {
     // Extract newMessageText from the payload
@@ -118,9 +112,7 @@ public ResponseEntity<Integer> updateMessage(@PathVariable Integer messageId, @R
     if (newMessageText == null || newMessageText.trim().isEmpty() || newMessageText.length() > 255) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(0);
     }
-
     try {
-   
         Message updatedMessage = messageService.updateMessage(messageId, newMessageText);
         if (updatedMessage != null) {
             return ResponseEntity.ok(1);
@@ -132,13 +124,10 @@ public ResponseEntity<Integer> updateMessage(@PathVariable Integer messageId, @R
     }
 }
 
-
-
-
+    //Endpoints to retrieve messages by User ID
     @GetMapping("/accounts/{accountId}/messages")
     public ResponseEntity<List<Message>> getMessagesByUser(@PathVariable Integer accountId) {
         List<Message> messages = messageService.getMessagesByUser(accountId);
         return ResponseEntity.ok(messages);
     }
-
 }

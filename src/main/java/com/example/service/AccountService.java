@@ -16,6 +16,7 @@ public class AccountService {
         this.accountRepository = accountRepository;
     }
 
+    //Registers a new account after validating the username and password
     public Account registerAccount(Account account) {
         if (account.getUsername() == null || account.getUsername().isEmpty()) {
             throw new IllegalArgumentException("Username cannot be blank");
@@ -29,6 +30,8 @@ public class AccountService {
         return accountRepository.save(account);
     }
 
+
+    //Authenticates a user by verifying the username and password
     public Account login(String username, String password) {
         Account account = accountRepository.findByUsernameAndPassword(username, password);
         if (account == null) {
@@ -37,13 +40,17 @@ public class AccountService {
         return account;
     }
 
+    //Retrieves an account by its username
     public Account getAccountByUsername(String username) {
         return accountRepository.findByUsername(username);
     }
 
+    //Retrieves an account by its ID
     public Account getAccountById(Integer accountId) {
         return accountRepository.findById(accountId).orElse(null);
     } 
+
+    //Save an account to the repository
     public Account saveAccount(Account account) {
         return accountRepository.save(account);
     }
